@@ -363,6 +363,9 @@ platform darwin {
 
     # Tiger support
     if {${os.major} == 8} {
+        # Previously --disable-asm was used.
+        incr revision
+
         post-patch {
             reinplace "s:,-compatibility_version,$\(LIBMAJOR\)::" ${worksrcpath}/configure
         }
