@@ -382,10 +382,6 @@ platform darwin {
                     --disable-libsvtav1 \
                     --enable-libvpx \
                     --disable-libvpx
-
-        if {${configure.build_arch} in [list ppc ppc64]} {
-            configure.args-append --disable-asm
-        }
     }
 }
 
