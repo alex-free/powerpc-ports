@@ -1,0 +1,81 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+PortSystem      1.0
+PortGroup       github 1.0
+PortGroup       legacysupport 1.1
+
+# clock_gettime
+legacysupport.newest_darwin_requires_legacy 15
+
+name            libusb
+categories      devel
+
+description     library for USB device access
+long_description \
+    library for use by user level applications to \
+    access USB devices regardless of OS
+homepage        https://libusb.info/
+
+license         LGPL-2.1+
+maintainers     {michaelld @michaelld} openmaintainer
+
+use_parallel_build no
+
+# compiler with C11 support is required to build
+# libusb as of version 1.0.24
+compiler.c_standard 2011
+# fatal error: 'stdatomic.h' file not found
+compiler.blacklist-append {clang < 700}
+
+subport libusb-devel {}
+
+if {${subport} eq ${name}} {
+    github.setup    libusb  libusb 1.0.30 v
+    revision        0
+    use_bzip2       yes
+    checksums       rmd160  339eb74659b5907df54c5bca3199669dfbffb868 \
+                    sha256  fea36f34f9156400209595e300840767ab1a385ede1dc7ee893015aea9c6dbaf \
+                    size    656112
+    github.tarball_from releases
+
+    conflicts       libusb-devel
+
+    # overload the github livecheck regex to look for versions that
+    # are just numbers and '.', no letters (e.g., "1.0.19rc1").
+    github.livecheck.regex  {([0-9.]+)}
+} else {
+    # IOKit/USB.h - fixes GCC 4.5+ issue pre-Catalina
+    # https://trac.macports.org/ticket/61868
+    # (As of 2021-11-07 the fix requires legacy-support-devel - bump
+    # this logic to the top once it is included in mainline legacy-support)
+    legacysupport.newest_darwin_requires_legacy 18
+
+    long_description {*}${long_description} \
+        This port provides devel version of ${name}, updated weekly to monthly.
+
+    github.setup    libusb  libusb a45bb163a603ac5ae3499806b151509848b0065c
+    version         20260825-[string range ${github.version} 0 7]
+    revision        0
+    epoch           1
+    checksums       rmd160  79fa5827c98729e73a9f1488a1c4ac4c3c515f33 \
+                    sha256  774a44251b568e9910191d0c9775e58a895840c2d55bb3d66209ca90480b1069 \
+                    size    482122
+    github.tarball_from archive
+
+    conflicts       libusb
+
+    depends_build-append \
+                     port:libtool \
+                     port:automake \
+                     port:autoconf
+
+    configure.cmd    ./autogen.sh
+}
+
+depends_build-append \
+                 path:bin/pkg-config:pkgconfig
+
+# https://trac.macports.org/ticket/64602
+configure.checks.implicit_function_declaration.whitelist-append strchr
+
+build.args-append AM_DEFAULT_VERBOSITY=1
