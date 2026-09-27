@@ -377,8 +377,10 @@ variable vie.at      ${letsencrypt_https_or_http}
 variable ykf.ca      http
 variable fcix.net    http
 variable sjtu.edu.cn ${letsencrypt_https_only}
+variable tigerports.com http
 
 set sites(macports_distfiles) [lsearch -all -glob -inline -not "
+    ${tigerports.com}://tigerports.com/macports/distfiles/:mirror
     ${fastly}://distfiles.macports.org/:mirror
     ${nue.de}://nue.de.distfiles.macports.org/:mirror
     ${fcix.net}://mirror.fcix.net/macports/distfiles/:mirror

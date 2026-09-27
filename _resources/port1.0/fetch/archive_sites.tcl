@@ -38,24 +38,11 @@ variable vie.at      ${letsencrypt_https_or_http}
 variable ykf.ca      http
 variable fcix.net    http
 variable sjtu.edu.cn ${letsencrypt_https_only}
+variable tigerports.com http
 
 # Keep the primary packages server first in the list
 set sites(macports_archives) [lsearch -all -glob -inline -not "
-    ${fastly}://packages.macports.org/:nosubdir
-    ${nue.de}://nue.de.packages.macports.org/:nosubdir
-    ${fcix.net}://mirror.fcix.net/macports/packages/:nosubdir
-    ${aarnet.au}://aarnet.au.packages.macports.org/macports-archives/:nosubdir
-    ${atl.us}://atl.us.packages.macports.org/:nosubdir
-    ${bos.us}://bos.us.packages.macports.org/:nosubdir
-    ${cph.dk}://cph.dk.packages.macports.org/:nosubdir
-    ${fco.it}://fco.it.packages.macports.org/:nosubdir
-    ${fra.de}://fra.de.packages.macports.org/:nosubdir
-    ${jog.id}://jog.id.packages.macports.org/macports/packages/:nosubdir
-    ${kmq.jp}://kmq.jp.packages.macports.org/:nosubdir
-    ${mse.uk}://mse.uk.packages.macports.org/:nosubdir
-    ${pek.cn}://pek.cn.packages.macports.org/macports/packages/:nosubdir
-    ${sjtu.edu.cn}://mirror.sjtu.edu.cn/macports/packages/:nosubdir
-    ${vie.at}://vie.at.packages.macports.org/:nosubdir
+    ${tigerports.com}://tigerports.com/macports/packages/:nosubdir
 " {:*}]
 
 variable archive_type
@@ -81,6 +68,6 @@ if {${os.platform} eq "darwin" && ${os.major} <= 12} {
 variable archive_sigtype
 set archive_sigtype(macports_archives) sig
 variable archive_pubkey
-set archive_pubkey(macports_archives) /opt/local/share/macports/keys/archives/macports-archives-2025.pub
+set archive_pubkey(macports_archives) /opt/local/share/macports/keys/archives/tigerports-archives-2027.pub
 
 }
