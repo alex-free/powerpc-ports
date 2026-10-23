@@ -1,0 +1,51 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+PortSystem          1.0
+PortGroup           github 1.0
+
+name                colm
+github.setup        adrian-thurston colm-suite 0.15.0 colm-
+revision            0
+epoch               1
+categories          lang devel
+license             MIT
+maintainers         nomaintainer
+
+description         Programming language for analysis and transformation
+long_description    Colm is a programming language designed for the analysis \
+                    and transformation of computer languages. Colm is \
+                    influenced primarily by TXL. It is in the family of \
+                    program transformation languages.
+
+homepage            http://www.colm.net/open-source/colm
+distname            ${name}-${version}
+checksums           rmd160  07b9f034d266d38fbf5a1712979e90a1edc259b5 \
+                    sha256  4ff4472315c8173c7e6771d335b54e004f2e9176b56fd74688a748672a8a8a62 \
+                    size    2211105
+github.tarball_from archive
+
+use_autoconf        yes
+autoconf.cmd        ./autogen.sh
+
+depends_build-append \
+                    port:autoconf \
+                    port:automake \
+                    port:libtool \
+                    path:bin/pkg-config:pkgconfig
+
+configure.args-append \
+                    --disable-install-ragel \
+                    --disable-manual \
+                    --enable-program
+
+if {${os.arch} eq "i386" && ${configure.build_arch} eq "ppc"} {
+    # Rosetta gets it wrong otherwise
+    configure.args-append \
+                    --build=powerpc-apple-darwin${os.major}
+}
+
+post-destroot {
+    xinstall -d -m 755 ${destroot}${prefix}/share/doc/${name}
+    xinstall -m 644 -W ${worksrcpath} README.md \
+        ${destroot}${prefix}/share/doc/${name}
+}
