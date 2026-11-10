@@ -1,0 +1,47 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+PortSystem          1.0
+PortGroup           cmake 1.1
+PortGroup           github 1.0
+
+epoch               1
+github.setup        mongodb mongo-cxx-driver 4.6.2 r
+revision            0
+license             Apache-2
+categories          devel databases
+platforms           {darwin >= 10}
+maintainers         {ryandesign @ryandesign} openmaintainer
+
+description         library for using mongodb from C++ code
+
+long_description    ${name} provides libmongocxx, a {*}${description}. \
+                    Also contains companion library libbsoncxx.
+distname            ${name}-${github.tag_prefix}${version}
+checksums           rmd160  dd4e5c290c318c691a1029e87eeb6fdd756b6969 \
+                    sha256  db3d963188af6ab44aa6c1ba9b4d9cd777933c2726a1ebe88a7e6884980e2cdf \
+                    size    2257026
+github.tarball_from releases
+
+# https://github.com/mongodb/mongo-cxx-driver/pull/1746
+patchfiles          0001-bsoncxx-v1-element-view.cpp-ensure-correct-struct-si.patch
+
+depends_lib-append  port:cyrus-sasl2 \
+                    port:mnmlstc-core \
+                    port:mongo-c-driver
+
+compiler.cxx_standard   2011
+compiler.thread_local_storage yes
+
+# Segmentation fault observed during build for Xcode 6.2
+compiler.blacklist-append {clang == 600.0.57}
+# error: no matching member function for call to 'push_back'
+compiler.blacklist-append {clang < 1000}
+
+configure.args      -DBSONCXX_POLY_USE_MNMLSTC=ON \
+                    -DBSONCXX_POLY_USE_SYSTEM_MNMLSTC=ON \
+                    -DBUILD_SHARED_AND_STATIC_LIBS=ON \
+                    -DBUILD_VERSION=${version} \
+                    -DENABLE_UNINSTALL=OFF \
+                    -DMONGOCXX_ENABLE_SSL=ON
+
+github.livecheck.regex {([0-9.]+)}
