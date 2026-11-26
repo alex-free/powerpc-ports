@@ -4,16 +4,18 @@ PortSystem              1.0
 PortGroup               cmake 1.1
 PortGroup               github 1.0
 
-github.setup            simdutf simdutf 9.3.3 v
+github.setup            simdutf simdutf 9.4.0 v
+# Used for setting dylib version, see below:
+set simdutf_compat      9.3.0
 revision                0
 categories              textproc
 maintainers             nomaintainer
 license                 Apache-2 MIT
 description             Unicode routines (UTF8, UTF16, UTF32) and Base64
 long_description        {*}${description}
-checksums               rmd160  bbe83b5cbaf506149574784b7ad0941431755b4a \
-                        sha256  441e374e8629bd8469f6d5cde9f0fa17ef3ad158aeb077791606d8aa73b565ef \
-                        size    3527945
+checksums               rmd160  085518fbf23af46af5187ca5c37522cc5cad6510 \
+                        sha256  361555059c963a1e5d78f3c7d42f35a19722b0333e6385994ff0fe7d80a5786a \
+                        size    3546257
 github.tarball_from     archive
 
 # The code is broken, upstream thinks that fixing bugs is not worth their time.
@@ -23,7 +25,22 @@ patchfiles              simdutf-char16_t-fix.patch
 # Support altivec:
 patchfiles-append       simdutf-9.1.2-altivec-combined.diff
 
-compiler.cxx_standard   2017
+patchfiles-append       patch-macho-compatibility-version.diff
+
+# 32-bit targets: word-sized atomic chunks; the 8-byte ones gcc routes to
+# libatomic on ppc32.
+patchfiles-append       patch-atomic-util-32bit-words.diff
+
+# The span overloads' output concept demands a noexcept data(); libstdc++'s
+# copy-on-write std::string (_GLIBCXX_USE_CXX11_ABI=0, the default here)
+# declares it noexcept(false), and the tests pass std::string outputs.
+patchfiles-append       patch-span-concepts-cow-string.diff
+
+# simdutf compiles its atomic_* base64 functions (std::atomic_ref) only as
+# C++20 and takes the standard from SIMDUTF_CXX_STANDARD, not from
+# CMAKE_CXX_STANDARD. A C++20 dependent (V8 14.x: lang/v8-14.6,
+# lang/nodejs26) sees the declarations whatever the library was built as.
+compiler.cxx_standard   2020
 
 set py_ver              3.14
 set py_ver_nodot        [string map {. {}} ${py_ver}]
@@ -35,8 +52,26 @@ depends_lib-append      port:libiconv
 configure.args-append   -DBUILD_SHARED_LIBS=ON \
                         -DCPM_LOCAL_PACKAGES_ONLY=ON \
                         -DPython3_EXECUTABLE=${prefix}/bin/python${py_ver} \
+                        -DSIMDUTF_ATOMIC_BASE64_TESTS=ON \
+                        -DSIMDUTF_CXX_STANDARD=20 \
                         -DSIMDUTF_ICONV=ON \
                         -DSIMDUTF_TOOLS=ON
+
+# Upstream bumps the soversion on every minor release, whatever the ABI
+# does. Name the library after the major version instead and record
+# additions in the Mach-O compatibility version: libsimdutf.9.dylib,
+# current ${version}, compatibility <major>.<minor>.0. Before an update,
+# check that no exported function, enumerator or struct changed
+# incompatibly (the vtable of simdutf::implementation does not matter, no
+# dependent calls through it); if one did, pin a new SOVERSION here (e.g.
+# 9.4) and revbump gnome/vte, lang/nodejs24, lang/v8-13.6, textproc/recoll
+# and www/ladybird-headless.
+set simdutf_v           [split ${version} .]
+configure.args-append   -DSIMDUTF_LIB_SOVERSION=[lindex ${simdutf_v} 0] \
+                        -DSIMDUTF_LIB_VERSION=${version}
+
+# configure.args-append   -DSIMDUTF_LIB_MACHO_COMPATIBILITY_VERSION=[lindex ${simdutf_v} 0].[lindex ${simdutf_v} 1].0
+configure.args-append   -DSIMDUTF_LIB_MACHO_COMPATIBILITY_VERSION=${simdutf_compat}
 
 platform darwin {
     if {${os.major} < 11 && ${configure.build_arch} in [list i386 x86_64]} {

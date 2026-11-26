@@ -20,7 +20,7 @@ if {${subport} eq "gmic-gimp" || ${subport} eq "gmic-qt"} {
     patchfiles      patch-src-Makefile.diff
 }
 
-version             4.0.7
+version             4.0.8
 github.setup        GreycLab gmic ${version} v.
 revision            0
 license             CeCILL
@@ -37,9 +37,9 @@ long_description    G'MIC stands for GREYC's Magic Image Converter. It is \
 
 homepage            https://gmic.eu
 distfiles           ${name}_${version}${extract.suffix}
-checksums           rmd160  1f5be1498935e731233f0f7175e217adccbe0aca \
-                    sha256  f84b215f40cb00de37bff5ec801103af211679794c3602d39c5430dab76005de \
-                    size    20593552
+checksums           rmd160  e04f065e286d9a22cca3f2ecfa8668c5bfb25ace \
+                    sha256  de30b742c2c69526732ace3a413d4e81fc08d9cf770c3a7b197298b6ab830b0f \
+                    size    20683690
 github.tarball_from releases
 
 depends_lib-append  port:curl \
@@ -58,8 +58,7 @@ depends_lib-append  port:curl \
 # We build with makefile, but still fix what is outright wrong:
 patchfiles-append   patch-CMakeLists.txt.diff
 
-compiler.blacklist              {clang < 1300}
-compiler.cxx_standard           2011
+compiler.cxx_standard           2017
 
 # Uses more memory per compile process than we can accommodate on our
 # automated build system. See https://github.com/dtschump/gmic/issues/325
@@ -130,9 +129,12 @@ if {${subport} eq ${name}} {
     build.args-append           NO_STDLIB=Yes \
                                 OPT_CFLAGS=""
 
-    if {${os.platform} eq "darwin" && ${os.major} < 11} {
-        build.args-replace      OPT_CFLAGS="" OPT_CFLAGS="-isystem${prefix}/include/LegacySupport"
-        build.args-append       OPT_LIBS="-L${prefix}/lib -lMacportsLegacySupport"
+    # See: https://trac.macports.org/ticket/70676
+    # See: https://trac.macports.org/ticket/74683
+    # TODO: Perhaps encapsulate this copy-pasta into a proc
+    if {${os.platform} eq "darwin" && ${os.major} <= [option legacysupport.newest_darwin_requires_legacy]} {
+        build.args-replace      OPT_CFLAGS="" OPT_CFLAGS="[legacysupport::get_cpp_flags]"
+        build.args-append       OPT_LIBS="-L${prefix}/lib [legacysupport::get_library_link_flags]"
     }
 
     post-destroot {
@@ -186,9 +188,10 @@ if {${subport} eq ${name}} {
                                 OPT_CFLAGS="" \
                                 SOVERSION=${soversion}
 
-    if {${os.platform} eq "darwin" && ${os.major} < 11} {
-        build.args-replace      OPT_CFLAGS="" OPT_CFLAGS="-isystem${prefix}/include/LegacySupport"
-        build.args-append       OPT_LIBS="-L${prefix}/lib -lMacportsLegacySupport"
+    # TODO: Perhaps encapsulate this copy-pasta into a proc
+    if {${os.platform} eq "darwin" && ${os.major} <= [option legacysupport.newest_darwin_requires_legacy]} {
+        build.args-replace      OPT_CFLAGS="" OPT_CFLAGS="[legacysupport::get_cpp_flags]"
+        build.args-append       OPT_LIBS="-L${prefix}/lib [legacysupport::get_library_link_flags]"
     }
 
     destroot {
@@ -234,9 +237,10 @@ if {${subport} eq ${name}} {
                                 OPT_CFLAGS="" \
                                 SOVERSION=${soversion}
 
-    if {${os.platform} eq "darwin" && ${os.major} < 11} {
-        build.args-replace      OPT_CFLAGS="" OPT_CFLAGS="-isystem${prefix}/include/LegacySupport"
-        build.args-append       OPT_LIBS="-L${prefix}/lib -lMacportsLegacySupport"
+    # TODO: Perhaps encapsulate this copy-pasta into a proc
+    if {${os.platform} eq "darwin" && ${os.major} <= [option legacysupport.newest_darwin_requires_legacy]} {
+        build.args-replace      OPT_CFLAGS="" OPT_CFLAGS="[legacysupport::get_cpp_flags]"
+        build.args-append       OPT_LIBS="-L${prefix}/lib [legacysupport::get_library_link_flags]"
     }
 
     destroot {

@@ -6,7 +6,7 @@ PortGroup           github 1.0
 
 # Ironically, not blosc2 at all now...
 name                blosc2
-github.setup        Blosc c-${name} 3.4.1 v
+github.setup        Blosc c-${name} 3.8.0 v
 revision            0
 categories          archivers devel
 license             BSD
@@ -18,26 +18,36 @@ long_description    A {*}${description}.
 
 homepage            https://www.blosc.org
 
-checksums           rmd160  9863b1b91a0041730d4139a800e8b6f25012ef24 \
-                    sha256  a7abc7c2b31e42fb659b11aa960a3a1a1329a9a1d724574138a97b575574ed49 \
-                    size    2005394
+checksums           rmd160  24092df267682a35df823240d9cc162e820072f9 \
+                    sha256  ab6dd0c838908b7da86de25a9a49ff0fa027ced131b9b2a0ffb26f3d942996f3 \
+                    size    2217794
 github.tarball_from archive
 
 depends_lib-append  port:lz4 \
+                    port:zfp \
                     port:zlib \
                     port:zstd
 
+# TODO: cannot use external zfp yet:
+# https://github.com/Blosc/c-blosc2/issues/886
 configure.args-append \
                     -DBUILD_BENCHMARKS:BOOL=OFF \
                     -DBUILD_EXAMPLES:BOOL=OFF \
                     -DBUILD_PLUGINS:BOOL=ON \
                     -DPREFER_EXTERNAL_LZ4:BOOL=ON \
+                    -DPREFER_EXTERNAL_ZFP:BOOL=ON \
                     -DPREFER_EXTERNAL_ZLIB:BOOL=ON \
                     -DPREFER_EXTERNAL_ZSTD:BOOL=ON
 
 # b2nd.h:585: error: wrong number of arguments specified for ‘deprecated’ attribute
 compiler.blacklist-append \
                     *gcc-4.0 *gcc-4.2 {clang < 900}
+
+# ___atomic_fetch_add_8, ___atomic_store_8
+if {[string match *gcc* ${configure.compiler}] && ${configure.build_arch} in [list arm i386 ppc]} {
+    configure.ldflags-append \
+                    -latomic
+}
 
 # https://trac.macports.org/ticket/67478
 platform darwin {
@@ -48,7 +58,7 @@ platform darwin {
     }
 }
 
-if {${build_arch} in [list ppc ppc64]} {
+if {${configure.build_arch} in [list ppc ppc64]} {
     configure.args-append \
                     -DDEACTIVATE_AVX2:BOOL=ON \
                     -DDEACTIVATE_AVX512:BOOL=ON

@@ -37,16 +37,16 @@ homepage            https://cmake.org
 # GitLab downloads are broken now. GitHub repo is the official mirror.
 # gitlab.instance     https://gitlab.kitware.com
 
-github.setup        Kitware CMake 4.4.2 v
-set cmake_hash      c162d6852d09a82cf87ff0cda6a23abc775dfdb6
+github.setup        Kitware CMake 4.5.1 v
+set cmake_hash      2803b0fd98c2b0e000d36ef834cf5c2d4992e653
 # We just use 4.x release now.
 # version             ${github.version}-[string range ${cmake_hash} 0 7]
 revision            0
 epoch               2
 distname            ${my_name}-${github.version}
-checksums           rmd160  9585ec7e936e448d6cf222b43c56bedad7887663 \
-                    sha256  1db9e61e60b6e0874c86386340b910382f3c5e75b9fbfb44d122063129a2789d \
-                    size    13283673
+checksums           rmd160  fea97f92f502f51bb152f261790765bb1ebdfbc7 \
+                    sha256  a79bf33cbe05686fdf79c2bbbcfe5e8e62ad16d3d540fa737cbedfeed41fb69e \
+                    size    13897760
 github.tarball_from releases
 
 dist_subdir         ${my_name}
@@ -247,7 +247,7 @@ subport ${subport_docs} {
     }
 
     # Supported pythons
-    set python_versions {310 311 312 313 314 315}
+    set python_versions {310 311 312 313 314}
 
     # declare all +python* variants, with conflicts
     foreach pyver ${python_versions} {

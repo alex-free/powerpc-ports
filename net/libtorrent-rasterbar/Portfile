@@ -4,15 +4,17 @@ PortSystem          1.0
 PortGroup           active_variants 1.1
 PortGroup           boost 1.0
 PortGroup           cmake 1.1
-PortGroup           conflicts_build 1.0
 PortGroup           github 1.0
+PortGroup           legacysupport 1.1
 
 # Earlier Boost has broken intrinsics includes.
 # Fixed in: https://github.com/boostorg/multiprecision/commit/28b314828ddd06b3e2e3586758b398fc29ceeb89
 # See also: https://github.com/arvidn/libtorrent/issues/7042
 boost.version       1.90
+# arc4random_buf, clock_gettime
+legacysupport.newest_darwin_requires_legacy 16
 
-github.setup        arvidn libtorrent 2.0.15 v
+github.setup        arvidn libtorrent 2.1.3 v
 revision            0
 name                libtorrent-rasterbar
 license             BSD
@@ -24,16 +26,19 @@ description         C++ bittorrent library (not the same as port libtorrent)
 long_description    A C++ bittorrent library designed to run on anything from embedded systems to large scale \
                     seed servers. It comes with python bindings and detailed documentation.
 
-distname            libtorrent-rasterbar-${version}
+distname            ${name}-${version}
 
-checksums           rmd160  8f5159f21aa78e71fead0bab2f8b25899c8487c8 \
-                    sha256  5e2e79129823b7ea48721164c32b5aaf83d3fd733b5502100f6705b29f27bb02 \
-                    size    4740499
+checksums           rmd160  ecc393f1836885c6234a1ccd4239a9cc1d9103ee \
+                    sha256  de05681acc564651211b4351af7d633a7a225587f0604611d657729dec299ae6 \
+                    size    6819063
 github.tarball_from releases
 
 depends_lib-append  path:lib/libssl.dylib:openssl
 
 patchfiles          patch-python-use-the-right-compiler.diff
+
+# https://github.com/arvidn/libtorrent/issues/9199
+patchfiles-append   plog-Util.h-fix-pthread-for-macOS-when-pthread_threadid_n.patch
 
 # TODO: review this.
 # It compiles fine on 10.6.8 ppc but fails on 10.6.8 x86_64 with the same gcc16.
@@ -42,19 +47,23 @@ platform darwin 10 powerpc {
                     patch-config.diff
 }
 
-# Apple clang less than 900.0.39.2 fails to build
-# build using C++14 for binary compatibility with C++14 dependents
-compiler.cxx_standard       2014
-compiler.blacklist-append   {clang < 900.0.39.2}
+# libtorrent 2.1 requires C++17.
+compiler.cxx_standard \
+                    2017
+compiler.blacklist-append \
+                    *gcc-5.* *gcc-6.* {clang < 1000.11.45.2}
 
-# ensure that compiler is using C++14 mode
-configure.cxxflags-append   -std=c++14
+# Keep the compiler mode consistent with the CMake C++17 requirement.
+configure.cxxflags-append \
+                    -std=c++17
 
 configure.args-append \
                     -DBoost_LIBRARY_DIR_RELEASE=[boost::lib_dir] \
+                    -DCMAKE_CXX_STANDARD=17 \
                     -Dencryption=ON \
-                    -DCMAKE_CXX_STANDARD=14 \
                     -Dlogging=OFF \
+                    -DNO_EXAMPLES=ON \
+                    -DNO_TESTS=ON \
                     -Dpython-bindings=ON \
                     -Dpython-install-system-dir=ON
 
@@ -62,9 +71,7 @@ cmake.build_type    Release
 
 universal_variant   no
 
-conflicts_build     ${name}
-
-variant python310 conflicts python311 python312 python313 python314 description {Build bindings for Python 3.10} {
+variant python310 conflicts python311 python312 python313 python314 description "Build bindings for Python 3.10" {
         require_active_variants boost[boost::version_nodot] python310
         depends_lib-append port:python310
         configure.args-append \
@@ -72,7 +79,7 @@ variant python310 conflicts python311 python312 python313 python314 description 
                 -DBoost_PYTHON310_LIBRARY_RELEASE=[boost::lib_dir]/libboost_python310-mt.dylib
 }
 
-variant python311 conflicts python310 python312 python313 python314 description {Build bindings for Python 3.11} {
+variant python311 conflicts python310 python312 python313 python314 description "Build bindings for Python 3.11" {
         require_active_variants boost[boost::version_nodot] python311
         depends_lib-append port:python311
         configure.args-append \
@@ -80,7 +87,7 @@ variant python311 conflicts python310 python312 python313 python314 description 
                 -DBoost_PYTHON311_LIBRARY_RELEASE=[boost::lib_dir]/libboost_python311-mt.dylib
 }
 
-variant python312 conflicts python310 python311 python313 python314 description {Build bindings for Python 3.12} {
+variant python312 conflicts python310 python311 python313 python314 description "Build bindings for Python 3.12" {
         require_active_variants boost[boost::version_nodot] python312
         depends_lib-append port:python312
         configure.args-append \
@@ -88,7 +95,7 @@ variant python312 conflicts python310 python311 python313 python314 description 
                 -DBoost_PYTHON312_LIBRARY_RELEASE=[boost::lib_dir]/libboost_python312-mt.dylib
 }
 
-variant python313 conflicts python310 python311 python312 python314 description {Build bindings for Python 3.13} {
+variant python313 conflicts python310 python311 python312 python314 description "Build bindings for Python 3.13" {
         require_active_variants boost[boost::version_nodot] python313
         depends_lib-append port:python313
         configure.args-append \
@@ -96,7 +103,7 @@ variant python313 conflicts python310 python311 python312 python314 description 
                 -DBoost_PYTHON313_LIBRARY_RELEASE=[boost::lib_dir]/libboost_python313-mt.dylib
 }
 
-variant python314 conflicts python310 python311 python312 python313 description {Build bindings for Python 3.14} {
+variant python314 conflicts python310 python311 python312 python313 description "Build bindings for Python 3.14" {
         require_active_variants boost[boost::version_nodot] python314
         depends_lib-append port:python314
         configure.args-append \
@@ -104,7 +111,7 @@ variant python314 conflicts python310 python311 python312 python313 description 
                 -DBoost_PYTHON314_LIBRARY_RELEASE=[boost::lib_dir]/libboost_python314-mt.dylib
 }
 
-variant error_logging description {Enable logging of errors to disk} {
+variant error_logging description "Enable logging of errors to disk" {
         configure.args-replace -Dlogging=OFF -Dlogging=ON
 }
 

@@ -8,8 +8,8 @@ PortGroup                       legacysupport   1.1
 legacysupport.newest_darwin_requires_legacy 18
 legacysupport.use_mp_libcxx     yes
 
-github.setup                    AcademySoftwareFoundation openexr 3.5.3 v
-revision                        2
+github.setup                    AcademySoftwareFoundation openexr 3.5.5 v
+revision                        0
 categories                      graphics
 license                         BSD
 maintainers                     {mcalhoun @MarcusCalhoun-Lopez} {mascguy @mascguy} openmaintainer
@@ -18,13 +18,10 @@ description                     OpenEXR Graphics Library
 long_description                OpenEXR is the professional-grade high dynamic range image \
                                 storage format of the motion picture industry.
 homepage                        https://www.openexr.com
-checksums                       rmd160  b2d6db38b9ef6cc630bbbac9961ee68f6c103bbe \
-                                sha256  aa84c2979d614a1bb5870da64d9fb4969deda8bf4f8166e7393bfd81e40af305 \
-                                size    26460839
+checksums                       rmd160  6cb3464d5c915168261cab3f6a2bbf30174cb57d \
+                                sha256  66699e84a31fb787461f0fdbeff7507479ae4096119d3a12670f9baedb8288eb \
+                                size    26498349
 github.tarball_from             releases
-
-# Backport, drop on next release:
-patchfiles-append               e9e9fefc429904f412699199a5264bcba1e655ec.patch
 
 # Python only used for tests
 set py_ver                      3.14
